@@ -124,6 +124,30 @@ await refresh();                                   // apply it now
 // setConfigJson('') clears the override → back to the hosted/bundled config
 ```
 
+### Uploading a new asset to Google Drive
+
+Assets are addressed by **Drive file ID**, served via `https://lh3.googleusercontent.com/d/<FILE_ID>`
+(the config's `host` is `https://lh3.googleusercontent.com/d/` and each `wheel.assets.*` value is the ID).
+To add or replace an image:
+
+1. **Upload** the image to Google Drive.
+2. **Make it link-public:** right-click → *Share* → *General access* → **Anyone with the link** (Viewer).
+   lh3 only serves files that are publicly shared.
+3. **Grab the file ID** from the share link —
+   `https://drive.google.com/file/d/`**`<FILE_ID>`**`/view?usp=sharing` — copy the `<FILE_ID>` segment.
+4. **Put the ID in the config** as the relevant `wheel.assets.*` value (e.g. `"wheel": "<FILE_ID>"`), then
+   publish the config (commit/push your hosted `config.json`).
+5. **Apply it:** in the app call `configure(configUrl)` then `refresh()` — the widget fetches the new
+   config, downloads the new image, and prunes the old one.
+
+Notes:
+- A new image must be a **new file (new ID)** referenced by the config — that's what triggers the
+  download + prune. Overwriting a Drive file *in place* keeps the same ID, so it won't be re-fetched
+  (assets are cached by ID); upload a new file and point the config at its ID instead.
+- The wheel/frame/spin PNGs keep their transparency through lh3; the background may be served as JPEG
+  (fine — it's opaque). `BitmapFactory` decodes by content, so the file name/extension doesn't matter.
+- Sanity-check a link in a browser: `https://lh3.googleusercontent.com/d/<FILE_ID>` should show the image.
+
 ## Demo app
 
 The `example/` app is a runnable control panel for the widget:
@@ -133,9 +157,25 @@ corepack yarn install
 corepack yarn example android   # build + run on a device/emulator
 ```
 
-Then long-press the home screen → **Widgets** → **Spin Wheel** → place it, and tap to spin. The
-example app's buttons exercise `configure` / `refresh` / `getLastResult`, and it live-renders
-`onSpinResult` events.
+Then long-press the home screen → **Widgets** → **Spin Wheel** → place it, and **tap the center to spin**.
+
+> If `yarn example android` can't find the React Native CLI, run it manually: `npx react-native start`
+> (Metro) in one terminal, then in another: `adb reverse tcp:8081 tcp:8081` and
+> `cd example/android && ./gradlew :app:installDebug && adb shell am start -n spinwheelwidget.example/.MainActivity`.
+
+**What the buttons do:**
+
+- **Use bundled config** — clears any overrides (`setConfigJson('')` + `configure('', '')`); the widget
+  runs fully offline from the bundled config + drawables.
+- **Configure remote URL** — points the widget at the hosted `config.json` (`configure(url)`). It only
+  writes the URL to prefs; the actual fetch happens on the next **Refresh**.
+- **Refresh widget** — `refresh()`: forces placed widgets to **re-fetch the config (bypassing the TTL)**,
+  re-download/reconcile assets, and re-render. Resolves whether a widget is currently placed.
+- **Read last result** — `getLastResult()`: reads the persisted state **without** a network fetch.
+
+It also shows three live panels: **Persisted state** (`configUrl`, `restingAngle`, `lastFetchTime`, and the
+landed color + swatch), **Last spin event**, and an **Event log** that records every RN callback —
+`onSpinResult` arrivals plus the result of each bridge call — so you can watch the bridge working.
 
 ## How the spin works
 
