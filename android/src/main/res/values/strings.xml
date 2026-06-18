@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wheel_spin_widget_name">Spin Wheel</string>
+    <string name="wheel_spin_widget_description">Tap to spin the wheel for a reward</string>
+</resources>

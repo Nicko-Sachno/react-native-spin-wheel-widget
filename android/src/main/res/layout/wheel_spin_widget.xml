@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Classic RemoteViews layout for the Spin Wheel widget.
+     Layering (bottom -> top): background, rotating wheel, static frame, spin button.
+     The spin animation is produced by pushing rotated bitmaps to @id/wheel_image
+     via RemoteViews.setImageViewBitmap + AppWidgetManager.updateAppWidget. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wheel_bg_fallback">
+
+    <!-- Optional fetched background (set at runtime via setImageViewBitmap) -->
+    <ImageView
+        android:id="@+id/wheel_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg"
+        android:contentDescription="@null" />
+
+    <!-- Rotating wheel -->
+    <ImageView
+        android:id="@+id/wheel_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:src="@drawable/wheel"
+        android:contentDescription="@null" />
+
+    <!-- Static frame overlay -->
+    <ImageView
+        android:id="@+id/wheel_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:src="@drawable/wheel_frame"
+        android:contentDescription="@null" />
+
+    <!-- Spin button (clickable; includes pointer). Centered. -->
+    <ImageView
+        android:id="@+id/wheel_spin"
+        android:layout_width="92dp"
+        android:layout_height="98dp"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:src="@drawable/wheel_spin"
+        android:contentDescription="@string/wheel_spin_widget_name" />
+
+</FrameLayout>

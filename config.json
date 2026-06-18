@@ -1,0 +1,39 @@
+{
+    "data": [
+        {
+            "id": "wheel_minimal",
+            "name": "Minimal Wheel Widget Configuration",
+            "type": "Widget",
+            "network": {
+                "attributes": {
+                    "refreshInterval": 300,
+                    "networkTimeout": 30000,
+                    "retryAttempts": 3,
+                    "cacheExpiration": 3600,
+                    "debugMode": false
+                },
+                "assets": {
+                    "host": "https://lh3.googleusercontent.com/d/"
+                }
+            },
+            "wheel": {
+                "rotation": {
+                    "duration": 2000,
+                    "minimumSpins": 3,
+                    "maximumSpins": 5,
+                    "spinEasing": "easeInOutCubic"
+                },
+                "assets": {
+                    "bg": "1LQBHiIrO92sZ1lFaaqkH_yE5G7A6tK5B",
+                    "wheelFrame": "10cFF-MGK_rbEh8TnprrmS0uHBOUN7wjN",
+                    "wheelSpin": "1qx0XNFz6wueMRES02D0QS27fMDfxoBAJ",
+                    "wheel": "1gRxQmL7kLnxlTKRk6TKa-YaRKcf61tI9"
+                }
+            }
+        }
+    ],
+    "meta": {
+        "version": 1,
+        "copyright": "Tapp"
+    }
+}

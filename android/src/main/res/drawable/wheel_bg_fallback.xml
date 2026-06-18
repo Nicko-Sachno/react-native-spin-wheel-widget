@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fallback background used when no remote bg asset is available.
+     NOTE: no @android: references here — Compose/AAPT-friendly hex only. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="300dp"
+        android:startColor="#2B5876"
+        android:endColor="#0B1A2B" />
+    <corners android:radius="16dp" />
+</shape>

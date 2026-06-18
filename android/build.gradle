@@ -22,12 +22,14 @@ buildscript {
     classpath "com.android.tools.build:gradle:8.7.2"
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}"
+    classpath "org.jetbrains.kotlin:kotlin-serialization:${getExtOrDefault('kotlinVersion')}"
   }
 }
 
 
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
+apply plugin: "org.jetbrains.kotlin.plugin.serialization"
 
 apply plugin: "com.facebook.react"
 
@@ -48,4 +50,16 @@ android {
 
 dependencies {
   implementation "com.facebook.react:react-android"
+
+  // Spin wheel widget runtime deps (see assignment requirements).
+  implementation "com.squareup.okhttp3:okhttp:5.4.0"
+  // Pinned to releases built with Kotlin 2.0 (metadata 2.0.0) so they're readable by the example
+  // app's Kotlin 2.1 compiler. The 1.11.0 line was built with Kotlin 2.3 → metadata 2.3.0, which a
+  // 2.1 compiler can't read (caused an internal type-checker crash).
+  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
+  implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.7.3"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+  implementation "androidx.core:core-ktx:1.13.1"
+
+  testImplementation "junit:junit:4.13.2"
 }

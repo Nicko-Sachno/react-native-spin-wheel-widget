@@ -36,6 +36,7 @@ project.xcworkspace
 .cxx
 .gradle
 .idea
+.kotlin
 .project
 .settings
 local.properties
@@ -68,9 +69,6 @@ android/keystores/debug.keystore
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-
-# Expo
-.expo/
 
 # Turborepo
 .turbo/

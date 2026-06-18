@@ -1,2 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- INTERNET is needed to fetch the remote JSON config + Drive-hosted assets.
+         Merged into the host app's manifest automatically. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+
+        <!-- Spin Wheel home-screen widget. Declared here so simply installing this library
+             (the .tgz package) makes the widget available in any host app's widget picker —
+             no manifest edits required in the consuming app. -->
+        <receiver
+            android:name="com.spinwheelwidget.wheel.WheelSpinWidget"
+            android:exported="true"
+            android:label="@string/wheel_spin_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/wheel_spin_widget_info" />
+        </receiver>
+
+    </application>
+
 </manifest>
