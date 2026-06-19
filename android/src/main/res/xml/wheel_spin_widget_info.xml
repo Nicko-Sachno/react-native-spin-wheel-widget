@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- updatePeriodMillis=0: no system polling. The platform minimum is 30 min and each poll wakes the
+     device to run onUpdate (network fetch + 4 bitmap decodes), so it's wasteful and imprecise. The
+     widget still hydrates on placement / reboot / app update, and the app drives explicit refreshes
+     via refresh(). For battery-friendly periodic background refresh, schedule a WorkManager job that
+     honors the config's refreshInterval (out of scope here). -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp"
     android:minHeight="110dp"
@@ -13,4 +18,4 @@
     android:initialLayout="@layout/wheel_spin_widget"
     android:previewImage="@drawable/wheel"
     android:description="@string/wheel_spin_widget_description"
-    android:updatePeriodMillis="1800000" />
+    android:updatePeriodMillis="0" />

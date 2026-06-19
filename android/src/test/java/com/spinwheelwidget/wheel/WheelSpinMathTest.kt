@@ -84,19 +84,26 @@ class WheelSpinMathTest {
         Rotation(durationMs = 2000L, minimumSpins = 3, maximumSpins = 5, spinEasing = "linear")
 
     @Test
-    fun `planSpin carries start, duration, easing, and a travel in the configured range`() {
-        val plan = planSpin(rotation, start = 10f, random = Random(42))
-        assertEquals(10f, plan.start, 0f)
+    fun `planSpin carries startAngle, duration, easing, and a travel in the configured range`() {
+        val plan = planSpin(rotation, startAngle = 10f, random = Random(42))
+        assertEquals(10f, plan.startAngle, 0f)
         assertEquals(2000L, plan.durationMs)
         assertEquals("linear", plan.easing)
         // 3..5 full turns + a [0,360) landing → [3*360, 6*360)
-        assertTrue(plan.travel >= 3 * 360f && plan.travel < 6 * 360f)
+        assertTrue(plan.travelDegrees >= 3 * 360f && plan.travelDegrees < 6 * 360f)
     }
 
     @Test
     fun `planSpin enforces a minimum duration`() {
-        val plan = planSpin(rotation.copy(durationMs = 50L), start = 0f, random = Random(1))
+        val plan = planSpin(rotation.copy(durationMs = 50L), startAngle = 0f, random = Random(1))
         assertEquals(300L, plan.durationMs)
+    }
+
+    @Test
+    fun `planSpin clamps an over-long duration to the broadcast-window ceiling`() {
+        // A config that asked for 60s would run past the ~10s goAsync window → must be capped.
+        val plan = planSpin(rotation.copy(durationMs = 60_000L), startAngle = 0f, random = Random(1))
+        assertEquals(8_000L, plan.durationMs)
     }
 
     @Test
@@ -105,8 +112,8 @@ class WheelSpinMathTest {
     }
 
     @Test
-    fun `angleAt runs from start to start plus travel`() {
-        val plan = SpinPlan(start = 10f, travel = 720f, durationMs = 2000L, easing = "linear")
+    fun `angleAt runs from startAngle to startAngle plus travel`() {
+        val plan = SpinPlan(startAngle = 10f, travelDegrees = 720f, durationMs = 2000L, easing = "linear")
         assertEquals(10f, angleAt(plan, 0f), 1e-3f)
         assertEquals(370f, angleAt(plan, 0.5f), 1e-3f) // linear midpoint
         assertEquals(730f, angleAt(plan, 1f), 1e-3f)

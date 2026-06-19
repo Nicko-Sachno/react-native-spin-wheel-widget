@@ -35,7 +35,7 @@ export default function App() {
     const sub = addSpinResultListener((e) => {
       setLastSpin(e);
       append(
-        `onSpinResult ← #${e.widgetId}  ${e.name} (${e.color})  @ ${e.angle.toFixed(1)}°`
+        `onSpinResult ← #${e.widgetId}  sector ${e.segmentIndex}  @ ${e.angle.toFixed(1)}°`
       );
     });
     append('addSpinResultListener() registered');
@@ -48,7 +48,7 @@ export default function App() {
     const r = getLastResult();
     setState(r);
     append(
-      `getLastResult() → ${r.name} (${r.color}) @ ${r.restingAngle.toFixed(1)}°`
+      `getLastResult() → sector ${r.segmentIndex} @ ${r.restingAngle.toFixed(1)}°`
     );
   };
 
@@ -57,7 +57,10 @@ export default function App() {
     setConfigJson('');
     configure('', '');
     append("setConfigJson('') + configure('', '')");
-    setStatus('Configured: bundled (offline) config.');
+    // Note: this clears the remote *config* URL, so no config fetch happens. The bundled config still
+    // names Drive-hosted assets, so the widget will still download that art when online and reconcile
+    // its asset cache; the bundled drawables are the *fallback* used only when offline.
+    setStatus('Configured: bundled config (assets still download when online; drawables are the offline fallback).');
     refreshState();
   };
 
@@ -103,8 +106,7 @@ export default function App() {
             : '—'}
         </Text>
         <Text style={styles.row}>
-          landed on: {state?.name ?? '—'}{' '}
-          {state?.color ? <Text style={{ color: state.color }}>●</Text> : null}
+          sector under pointer: {state?.segmentIndex ?? '—'}
         </Text>
       </View>
 
@@ -112,7 +114,7 @@ export default function App() {
         <Text style={styles.cardTitle}>Last spin event</Text>
         <Text style={styles.row}>
           {lastSpin
-            ? `#${lastSpin.widgetId} → ${lastSpin.name} (${lastSpin.color}) at ${lastSpin.angle.toFixed(1)}°`
+            ? `#${lastSpin.widgetId} → sector ${lastSpin.segmentIndex} at ${lastSpin.angle.toFixed(1)}°`
             : 'Tap the wheel on your home screen…'}
         </Text>
       </View>

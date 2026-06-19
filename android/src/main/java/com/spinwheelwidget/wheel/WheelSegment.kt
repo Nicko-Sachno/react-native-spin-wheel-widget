@@ -1,33 +1,25 @@
 package com.spinwheelwidget.wheel
 
-data class WheelSegment(
-    val index: Int,
-    val color: String, // hex
-    val name: String    // human-readable color name (later: label, prizeId, item, etc...)
-)
-
+/**
+ * The geometric outcome of a spin: which equal-sized sector sits under the fixed top pointer, plus
+ * the resting angle that produced it. We deliberately report ONLY the sector index — not a color or
+ * prize label — because the widget can't know the semantics of the artwork: `wheel.png` is opaque
+ * pixels with no metadata, so any color/name we attached would be a guess that may not match what the
+ * user sees. The index is a pure, verifiable fact given the [SEGMENT_COUNT] sector model below.
+ */
 data class SpinResult(
     val segmentIndex: Int,
-    val segment: WheelSegment,
     val angle: Float
 )
 
-// The wheel art has 12 equal sectors: one special GREEN sector (index 0, at 12 o'clock) and the
-// other 11 alternating RED / PURPLE. sweep = 360/12 = 30°. At rest (angle 0°) the top pointer sits
-// over index 0 (Green) — matching the art's green wedge at 12 o'clock.
-// TODO: source segments + a pointer offset from config to match the art pixel-perfectly.
-private const val SEGMENT_COUNT = 12
-
-val DEFAULT_SEGMENTS: List<WheelSegment> = List(SEGMENT_COUNT) { i ->
-    when {
-        i == 0 -> WheelSegment(i, "#7CB342", "Green")
-        i % 2 == 1 -> WheelSegment(i, "#8E24AA", "Purple")
-        else -> WheelSegment(i, "#26C6DA", "Mint")
-    }
-}
+// The wheel is modeled as 12 equal sectors (sweep = 360/12 = 30°), with sector 0 centered at the top
+// (12 o'clock) under the pointer at rest. This is an ASSUMPTION about the artwork, not something read
+// from it; if a future config describes the real sector layout, source the count + a pointer offset
+// from there instead. Until then we report the index under this model and make no claim about labels.
+const val SEGMENT_COUNT = 12
 
 /**
- * Which segment sits under the fixed top pointer after the wheel rotated [angle]° clockwise.
+ * Which sector sits under the fixed top pointer after the wheel rotated [angle]° clockwise.
  * The pointer is stationary and the wheel turns beneath it, so we map the NEGATIVE of the
  * rotation (360 - angle) into segment-sized sweeps.
  */

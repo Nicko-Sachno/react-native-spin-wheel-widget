@@ -11,12 +11,11 @@ export type SpinResultEvent = {
   angle: number;
   /** The app-widget id that spun. */
   widgetId: number;
-  /** Index of the segment the wheel landed on. */
+  /**
+   * Index of the sector the wheel landed on (fixed 12-equal-sector model). Geometric fact only —
+   * not a prize/color label; see {@link SpinWheelResult.segmentIndex}.
+   */
   segmentIndex: number;
-  /** Hex color of the landed segment, e.g. '#7CB342'. */
-  color: string;
-  /** Human-readable name of the landed segment, e.g. 'Green'. */
-  name: string;
 };
 
 const emitter = new NativeEventEmitter(SpinWheelWidget as any);

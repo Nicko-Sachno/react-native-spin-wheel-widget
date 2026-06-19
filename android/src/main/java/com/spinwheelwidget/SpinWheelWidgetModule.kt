@@ -30,20 +30,22 @@ class SpinWheelWidgetModule(reactContext: ReactApplicationContext) :
   private var listenerCount = 0
   private var spinResultReceiver: BroadcastReceiver? = null
 
+  // One repository for the module's lifetime. It holds no per-call state (everything delegates to
+  // SharedPreferences / disk), so sharing it is safe and avoids re-opening prefs on every bridge call.
+  private val repo by lazy { WheelRepository(reactApplicationContext) }
+
   override fun getName(): String = NAME
 
   // ---- Config (writes to the widget's SharedPreferences) ----------------
 
   override fun configure(configUrl: String, assetsHost: String) {
-    WheelRepository(reactApplicationContext).apply {
-      this.configUrl = configUrl
-      this.assetsHostOverride = assetsHost
-    }
+    repo.configUrl = configUrl
+    repo.assetsHostOverride = assetsHost
   }
 
   override fun setConfigJson(json: String) {
     // Empty string clears the override (falls back to network/bundled config).
-    WheelRepository(reactApplicationContext).rawConfigOverride = json.ifBlank { null }
+    repo.rawConfigOverride = json.ifBlank { null }
   }
 
   // ---- Trigger a widget reload ------------------------------------------
@@ -51,7 +53,7 @@ class SpinWheelWidgetModule(reactContext: ReactApplicationContext) :
   override fun refresh(promise: Promise) {
     try {
       val context = reactApplicationContext
-      WheelRepository(context).forceNextRefresh() // explicit refresh bypasses the soft TTL
+      repo.forceNextRefresh() // explicit refresh bypasses the soft TTL
       val manager = AppWidgetManager.getInstance(context)
       val ids = manager.getAppWidgetIds(ComponentName(context, WheelSpinWidget::class.java))
       // Fire APPWIDGET_UPDATE → WheelSpinWidget.onUpdate reloads config, caches assets, re-renders.
@@ -69,15 +71,12 @@ class SpinWheelWidgetModule(reactContext: ReactApplicationContext) :
   // ---- Read persisted state ---------------------------------------------
 
   override fun getLastResult(): WritableMap {
-    val repo = WheelRepository(reactApplicationContext)
-    val result = repo.lastResult() // the landed segment, derived from the persisted resting angle
+    val result = repo.lastResult() // the landed sector index, derived from the persisted resting angle
     return Arguments.createMap().apply {
       putDouble("restingAngle", repo.restingAngle.toDouble())
       putDouble("lastFetchTime", repo.lastFetchTime.toDouble())
       putString("configUrl", repo.configUrl)
       putInt("segmentIndex", result.segmentIndex)
-      putString("color", result.segment.color)
-      putString("name", result.segment.name)
     }
   }
 
@@ -106,8 +105,6 @@ class SpinWheelWidgetModule(reactContext: ReactApplicationContext) :
           putDouble("angle", intent.getFloatExtra(WheelSpinWidget.EXTRA_ANGLE, 0f).toDouble())
           putInt("widgetId", intent.getIntExtra(WheelSpinWidget.EXTRA_WIDGET_ID, -1))
           putInt("segmentIndex", intent.getIntExtra(WheelSpinWidget.EXTRA_SEGMENT_INDEX, -1))
-          putString("color", intent.getStringExtra(WheelSpinWidget.EXTRA_COLOR))
-          putString("name", intent.getStringExtra(WheelSpinWidget.EXTRA_NAME))
         }
         if (reactApplicationContext.hasActiveReactInstance()) {
           reactApplicationContext

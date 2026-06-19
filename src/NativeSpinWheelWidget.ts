@@ -8,12 +8,12 @@ export type SpinWheelResult = {
   lastFetchTime: number;
   /** The remote config URL currently configured ('' when running fully offline). */
   configUrl: string;
-  /** Index of the segment currently under the pointer (derived from restingAngle). */
+  /**
+   * Index of the sector currently under the pointer, derived from `restingAngle` using a fixed
+   * 12-equal-sector model. This is a geometric fact only — NOT a prize/color label, since the widget
+   * has no metadata about the artwork. Treat it as "which wedge is on top," not "what was won."
+   */
   segmentIndex: number;
-  /** Hex color of that segment, e.g. '#7CB342'. */
-  color: string;
-  /** Human-readable name of that segment, e.g. 'Green'. */
-  name: string;
 };
 
 export interface Spec extends TurboModule {

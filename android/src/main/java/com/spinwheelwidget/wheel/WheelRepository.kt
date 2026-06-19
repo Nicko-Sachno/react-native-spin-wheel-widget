@@ -105,10 +105,10 @@ class WheelRepository(context: Context) {
         cache.pruneAssetsExcept(relatives.map { cache.assetFile(it).name }.toSet())
     }
 
-    fun lastResult(segments: List<WheelSegment> = DEFAULT_SEGMENTS): SpinResult {
+    /** The sector under the pointer for the persisted resting angle (geometric index only — no label). */
+    fun lastResult(): SpinResult {
         val angle = restingAngle
-        val idIndex = segmentAt(angle, segments.size)
-        return SpinResult(idIndex, segments[idIndex], angle)
+        return SpinResult(segmentAt(angle, SEGMENT_COUNT), angle)
     }
 
     /**
@@ -170,13 +170,15 @@ class WheelRepository(context: Context) {
             // STALE: revalidate, but the cache is still trusted as the fallback (stale-if-error).
             Freshness.STALE -> fetchAndCache() ?: cached ?: seedFromBundled()
 
-            // EXPIRED: must revalidate. On failure we deliberately prefer the known-good bundled
-            // baseline over the expired cache — we don't render data past its hard TTL. (The widget
-            // still won't go blank: bundled drawables back the assets.)
-            // Deliberate consequence: seedFromBundled() overwrites the expired config in CBOR with
-            // the bundled one. Harmless — the moment the network is back we fetch and overwrite with
-            // fresh data anyway; we just don't keep serving data we've decided to distrust.
-            Freshness.EXPIRED -> fetchAndCache() ?: seedFromBundled()
+            // EXPIRED: must revalidate. On success we serve fresh data. On failure (offline) we apply
+            // stale-if-error: prefer the expired-but-real cache over the bundled baseline, and — key —
+            // we do NOT overwrite it, so the last-known-good remote config (e.g. the live promotion +
+            // its assets) survives until the network returns and we can fetch fresh. Only when there is
+            // no cache at all do we seed from bundled. The widget never goes blank either way (bundled
+            // drawables back the assets). Rationale: reverting a live promo to a baked-in default the
+            // moment a device goes offline past the hard TTL is worse UX than briefly showing stale-but-
+            // real content; see the README's "Design decisions" section.
+            Freshness.EXPIRED -> fetchAndCache() ?: cached ?: seedFromBundled()
         }
     }
 
