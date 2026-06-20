@@ -26,6 +26,7 @@ import com.spinwheelwidget.wheel.WheelRepository
 import com.spinwheelwidget.wheel.angleAt
 import com.spinwheelwidget.wheel.planSpin
 import com.spinwheelwidget.wheel.data.remote.Data
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -174,9 +175,13 @@ class WheelSpinWidget : AppWidgetProvider() {
         relativePath: String,
         @DrawableRes fallbackRes: Int,
     ): Bitmap {
+        // decodeFile returns NULL on a corrupt/truncated/partially-written cache file (or on OOM) —
+        // not an exception. Left unchecked the null reaches .capped()/.scale() in decodeLayers as an
+        // NPE, so fall back to the bundled drawable instead. The bundled resource is the safety net;
+        // if even that fails to decode the scope's CoroutineExceptionHandler keeps it from crashing.
         val cachedFile = repo.cachedAssetFile(relativePath)
-        return if (cachedFile != null) BitmapFactory.decodeFile(cachedFile.absolutePath)
-        else BitmapFactory.decodeResource(context.resources, fallbackRes)
+        val cached = cachedFile?.let { BitmapFactory.decodeFile(it.absolutePath) }
+        return cached ?: BitmapFactory.decodeResource(context.resources, fallbackRes)
     }
 
     // ---- Spin animation --------------------------------------------------
@@ -425,7 +430,15 @@ class WheelSpinWidget : AppWidgetProvider() {
         private const val MEASURE = true
 
         // Blocking network + disk I/O → IO dispatcher (elastic pool), not Default (CPU pool).
-        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        // SupervisorJob keeps one failed hydrate/spin from cancelling the others; the handler makes
+        // an uncaught throw inside a launch (a bad decode, a malformed config) fail SOFT — logged,
+        // not a crash. Without it such an exception reaches the default handler and takes down the
+        // app process hosting the provider; the widget just keeps its last good frame instead.
+        private val scope = CoroutineScope(
+            SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, e ->
+                Log.e(TAG, "Widget coroutine failed", e)
+            }
+        )
         private val framePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
         // One shared repository for all callbacks (built from the application context → no leak).

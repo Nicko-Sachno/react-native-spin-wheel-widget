@@ -31,7 +31,13 @@ private const val MAX_DURATION_MS = 8_000L
  * make it deterministic. Duration is clamped to [[MIN_DURATION_MS], [MAX_DURATION_MS]] (see above).
  */
 fun planSpin(rotation: Rotation, startAngle: Float, random: Random = Random): SpinPlan {
-    val fullTurns = random.nextInt(rotation.minimumSpins, rotation.maximumSpins + 1)
+    // Guard the spin COUNT the same way duration is clamped above. nextInt(from, until) requires
+    // until > from, so a typo'd config with minimumSpins > maximumSpins (or a negative minimum)
+    // would otherwise throw — and that throw lands in the spin coroutine. coerceAtLeast keeps the
+    // range valid and ≥ 0 (the wheel never spins backward).
+    val minTurns = rotation.minimumSpins.coerceAtLeast(0)
+    val maxTurns = rotation.maximumSpins.coerceAtLeast(minTurns)
+    val fullTurns = random.nextInt(minTurns, maxTurns + 1)
     val landingAngle = random.nextInt(0, 360).toFloat()
     val travelDegrees = fullTurns * 360f + landingAngle
     return SpinPlan(
